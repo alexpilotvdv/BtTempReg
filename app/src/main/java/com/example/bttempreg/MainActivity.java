@@ -9,6 +9,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -151,32 +152,6 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    /*public boolean onTouch(View v, MotionEvent event) {
-        switch(v.getId()) { // определяем какая кнопка
-            case R.id.rightAng:
-                switch (event.getAction()) { // определяем нажата или отпущена
-                    case MotionEvent.ACTION_DOWN:
-                        corx = (float) (corx + 0.1);
-                        break;
-                    case MotionEvent.ACTION_UP:
-
-                        break;
-                }
-            case R.id.leftAng:
-                switch (event.getAction()) { // определяем нажата или отпущена
-                    case MotionEvent.ACTION_DOWN:
-                        corx = (float) (corx - 0.1);
-                        break;
-                    case MotionEvent.ACTION_UP:
-
-                        break;
-                }
-                break;
-        }
-        return true;
-    }*/
-
-
     private class ThreadConnectBTdevice extends Thread { // Поток для коннекта с Bluetooth
         private BluetoothSocket bluetoothSocket = null;
         private ThreadConnectBTdevice(BluetoothDevice device) {
@@ -312,7 +287,7 @@ public class MainActivity extends AppCompatActivity {
                         if (count!=0) {
                             sbc.append(strIncom);
                             count = count + 1;
-                            //  Log.d("xxx", "str=" + sbc);
+
                         }
                     }
                     //  sb.append(strIncom); // собираем символы в строку
@@ -320,9 +295,7 @@ public class MainActivity extends AppCompatActivity {
                     // int endOfLineIndex = sb.indexOf("\r\n"); // определяем конец строки
                     //Log.d("xxx", sb.substring(0));
                     if (flag2==1){
-                        //  Log.d("xxx", "btx=" + btx );
-                        //sbprint = sb.substring(0, sb.length());
-                        //  sb.delete(0, sb.length());
+
                         sbprint="x=" + btx + " " + "y=" + bty + "z=" + btz;
                         flag2=0;
                         runOnUiThread(new Runnable() { // Вывод данных
@@ -346,7 +319,43 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+     //для отправки
+     public void write(byte[] buffer) {
+         try {
+             connectedOutputStream.write(buffer);
+         } catch (IOException e) {
+             // TODO Auto-generated catch block
+             e.printStackTrace();
+         }
+     }
+        //для отправки тоже самое только через отдельный класс
+        // TransferData T = new TransferData();
+        //  T.execute(str);
+        class TransferData extends AsyncTask<String, Void, Void> {
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+               // tvInfo.setText("Begin"); сообщить о старте передачи
+            }
 
+            @Override
+            protected Void doInBackground(String... params) {
+                for(String bt:params){
+                    byte[] bytesToSend =  bt.getBytes();
+                try {
+                    connectedOutputStream.write(bytesToSend);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                }
+                return null;
+            }
+            @Override
+            protected void onPostExecute(Void result) {
+                super.onPostExecute(result);
+              //  tvInfo.setText("End"); сообщить о конце передачи
+            }
+        }
 
     }
 
